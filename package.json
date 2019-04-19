@@ -26,7 +26,8 @@
         "src/index.js"
     ],
     "dependencies": {
-        "lodash.isequal": "^4.5.0"
+        "lodash.isequal": "^4.5.0",
+        "rn-modal-picker": "^0.1.9"
     },
     "devDependencies": {
         "babel-jest": "^23.6.0",
