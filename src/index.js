@@ -13,7 +13,7 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import isEqual from 'lodash.isequal';
+import { isEqual, includes, isEmpty } from 'lodash';
 
 export default class RNPickerSelect extends PureComponent {
     static propTypes = {
@@ -60,6 +60,9 @@ export default class RNPickerSelect extends PureComponent {
 
         // Custom Icon
         Icon: PropTypes.func,
+        // Search TextInput
+        searchable: PropTypes.bool,
+        searchText: PropTypes.string,
     };
 
     static defaultProps = {
@@ -86,6 +89,8 @@ export default class RNPickerSelect extends PureComponent {
         textInputProps: {},
         pickerProps: {},
         Icon: null,
+        searchable: false,
+        searchText: 'Search'
     };
 
     static handlePlaceholder({ placeholder }) {
@@ -247,6 +252,18 @@ export default class RNPickerSelect extends PureComponent {
     }
 
     renderPickerItems() {
+        if (!isEmpty(this.state.searchedText)) {
+            return this.state.searchedItems.map((item) => {
+                return (
+                    <Picker.Item
+                        label={item.label}
+                        value={item.value}
+                        key={item.key || item.label}
+                        color={item.color}
+                    />
+                );
+            });
+        }
         return this.state.items.map((item) => {
             return (
                 <Picker.Item
@@ -260,7 +277,7 @@ export default class RNPickerSelect extends PureComponent {
     }
 
     renderDoneBar() {
-        const { doneText, hideDoneBar, onUpArrow, onDownArrow, onDonePress, style } = this.props;
+        const { doneText, hideDoneBar, onUpArrow, onDownArrow, onDonePress, style, searchable, searchText } = this.props;
 
         if (hideDoneBar) {
             return null;
@@ -310,8 +327,20 @@ export default class RNPickerSelect extends PureComponent {
                     hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}
                     testID="done_button"
                 >
-                    <View testID="needed_for_touchable">
+                    <View style={{ flexDirection: 'row', }} testID="needed_for_touchable">
                         <Text style={[defaultStyles.done, style.done]}>{doneText}</Text>
+                        {searchable &&
+                            <TextInput
+                                style={[defaultStyles.searchContainer, style.searchContainer]}
+                                autoCorrect={false}
+                                placeholder={searchText}
+                                autoFocuse
+                                value={this.state.searchedText}
+                                onChangeText={(searchedText) => {
+                                    const searchedItems = this.state.items.filter(({ label }) => includes(label, searchedText));
+                                    this.setState({ searchedItems, searchedText });
+                                }} />
+                        }
                     </View>
                 </TouchableWithoutFeedback>
             </View>
@@ -538,5 +567,12 @@ const defaultStyles = StyleSheet.create({
         height: '100%',
         color: 'transparent',
         opacity: 0,
+    },
+    searchContainer: {
+        backgroundColor: 'blue',
+        width: 150,
+        fontFamily: 'RB',
+        textAlign: 'right',
+        marginHorizontal: 10,
     },
 });
